@@ -9,7 +9,11 @@
     "@testing-library/user-event": "^13.5.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+<<<<<<< HEAD:frontend/package.json
     "react-scripts": "^3.0.1",
+=======
+    "react-scripts": "^5.0.1",
+>>>>>>> ryan:frontend/frontend/package.json
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -35,5 +39,11 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
+  "main": "index.js",
+  "devDependencies": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
