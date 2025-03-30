@@ -8,6 +8,7 @@ import LandingPage from "./pages/LandingPage";
 import MoodSelector from "./pages/MoodSelector";
 import RecommendedSongs from "./pages/RecommendedSongs";
 import NotFound from "./pages/NotFound";
+import GenreEraSelector from './pages/GenreEraSelector';
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/mood-selector" element={<MoodSelector />} />
+          <Route path="/genre-era-selector" element={<GenreEraSelector />} />
           <Route path="/recommended-songs" element={<RecommendedSongs />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
