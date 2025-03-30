@@ -52,7 +52,7 @@ app.post("/generate-playlist", async (req, res) => {
     const openaiResponse = await axios.post(
       "https://api.openai.com/v1/chat/completions",
       {
-        model: "gpt-3.5-turbo",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -61,9 +61,9 @@ app.post("/generate-playlist", async (req, res) => {
           {
             role: "user",
             content: `
-Recommend 10 songs that match the mood "${mood}", genre "${genre}", and era "${era}".
+Recommend 10 songs on Spotify that match the mood "${mood}", genre "${genre}", and era "${era}".
 Return ONLY one song per line, in the exact format: "Song Title" by Artist
-(no numbers, no extra punctuation).
+(no numbers, no extra punctuation). Additionally, if there are multiple artists, use "&" instead of "and".
             `
           },
         ],
