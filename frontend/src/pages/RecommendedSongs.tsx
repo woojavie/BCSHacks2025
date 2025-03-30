@@ -42,12 +42,12 @@ const RecommendedSongs: React.FC = () => {
                   key={song.id}
                   className="bg-white/40 hover:bg-white/60 p-4 rounded-xl flex items-center transition-all hover:scale-[1.02]"
                 >
-                  <div className="bg-purple-100 rounded-full p-2 mr-4">
-                    <Music className="h-5 w-5 text-purple-800" />
+                  <div className="bg-white rounded-full p-2 mr-4">
+                    <Music className="h-5 w-5 text-white-800" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-medium text-purple-900">{song.title}</h3>
-                    <p className="text-sm text-purple-800/80">{song.artist}</p>
+                    <h3 className="font-medium text-white">{song.title}</h3>
+                    <p className="text-sm text-white/80">{song.artist}</p>
                   </div>
                 </div>
               ))}
