@@ -28,12 +28,12 @@ const RecommendedSongs: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="w-full max-w-3xl">
           <div className="glass rounded-3xl p-8 md:p-12">
-            <h1 className="text-4xl md:text-5xl font-serif font-medium text-purple-900 mb-2 text-center tracking-wide">
-              Your Vibeify!
+          <h1 className="text-4xl md:text-5xl font-serif font-medium text-white mb-2 text-center tracking-wide">
+          Your Vibeify!
             </h1>
             
-            <p className="text-center text-purple-800/80 mb-8">
-              We've curated these songs based on your mood selection.
+            <p className="text-center text-white mb-8">
+            We've curated these songs based on your mood selection.
             </p>
             
             <div className="space-y-3 mb-8">
