@@ -140,7 +140,7 @@ const toggleEra = (eraId: string) => {
             {/* Genre Selection */}
             <h2 className="text-2xl font-medium mb-4 text-center">Music Genre</h2>
             <p className="text-center opacity-80 mb-6">
-                Select one or more genres you'd like to hear
+                Select one genre you'd like to hear from
             </p>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -211,7 +211,7 @@ const toggleEra = (eraId: string) => {
             {/* Era Selection */}
             <h2 className="text-2xl font-medium mb-4 text-center">Music Era</h2>
             <p className="text-center opacity-80 mb-6">
-                Select one or more time periods
+                Select one time period you'd like to hear from
             </p>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

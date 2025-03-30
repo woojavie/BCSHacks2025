@@ -87,7 +87,7 @@ const MoodSelector: React.FC = () => {
           </h1>
           
           <p className="text-center opacity-80 mb-8">
-            Select one or more moods that match how you're feeling right now.
+            Select one mood that match how you're feeling right now
           </p>
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
