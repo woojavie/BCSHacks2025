@@ -36,7 +36,7 @@ const LandingPage: React.FC = () => {
             <Button 
               className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/30 px-8 py-6 text-xl rounded-full shadow-lg transition-all hover:shadow-xl"
             >
-              Get Started
+              Signup
             </Button>
           </Link>
         </div>
@@ -48,7 +48,7 @@ const LandingPage: React.FC = () => {
             onClick={handleLogin}
             className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/30 px-8 py-6 text-xl rounded-full shadow-lg transition-all hover:shadow-xl"
           >
-            Login to Spotify
+            Login
           </Button>
         </div>
       </div>
