@@ -5,12 +5,9 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { 
   Music, 
-  Disc,
   Clock,
-  Guitar,
   Mic2,
   Plus,
-  Headphones
 } from 'lucide-react';
 
 interface CategoryOption {
@@ -40,20 +37,21 @@ const GenreEraSelector: React.FC = () => {
     { id: '2020s', name: '2020s', icon: <Clock className="h-5 w-5" /> },
   ];
 
-  const toggleGenre = (genreId: string) => {
-    setSelectedGenres(prev => 
-      prev.includes(genreId) 
-        ? prev.filter(id => id !== genreId) 
-        : [...prev, genreId]
-    );
+
+const toggleGenre = (genreId: string) => {
+    setSelectedGenres(prev => {
+      const updated = prev.includes(genreId) ? prev.filter(id => id !== genreId) : [...prev, genreId];
+      console.log('Updated genres:', updated);  // Check state
+      return updated;
+    });
   };
 
-  const toggleEra = (eraId: string) => {
-    setSelectedEras(prev => 
-      prev.includes(eraId) 
-        ? prev.filter(id => id !== eraId) 
-        : [...prev, eraId]
-    );
+const toggleEra = (eraId: string) => {
+    setSelectedEras(prev => {
+      const updated = prev.includes(eraId) ? prev.filter(id => id !== eraId) : [...prev, eraId];
+      console.log('Updated eras:', updated);  // Check state
+      return updated;
+    });
   };
 
   const handleCustomGenreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,9 +82,52 @@ const GenreEraSelector: React.FC = () => {
     }
   };
 
-  const handleGeneratePlaylist = () => {
-    navigate('/recommended-songs');
+  const handleGeneratePlaylist = async () => {
+    // Store selected genres and eras
+    localStorage.setItem('selectedGenres', JSON.stringify(selectedGenres));
+    localStorage.setItem('selectedEras', JSON.stringify(selectedEras));
+    
+    const storedMoods = localStorage.getItem('selectedMoods');
+    const moods = storedMoods ? JSON.parse(storedMoods) : [];
+    const accessToken = localStorage.getItem('accessToken');
+  
+    if (!accessToken) {
+      alert("Access token is missing. Please log in again.");
+      return;
+    }
+  
+    const payload = {
+      moods,
+      genres: selectedGenres,
+      eras: selectedEras,
+      accessToken,
+    };
+  
+    try {
+      const response = await fetch('http://localhost:5000/generate-playlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+  
+      const data = await response.json();
+  
+      if (data.playlistUrl && data.songs) {
+        // Store playlist URL and generated songs in localStorage
+        console.log('Storing playlist data:', data);
+        localStorage.setItem('playlistUrl', data.playlistUrl);
+        localStorage.setItem('recommendedSongs', JSON.stringify(data.songs));        
+        navigate('/recommended-songs');
+      } else {
+        alert('Failed to generate playlist');
+      }
+    } catch (error) {
+      console.error('Error generating playlist:', error);
+      alert('Server error');
+    }
   };
+  
+      
 
   return (
     <Layout>

@@ -9,6 +9,7 @@ import MoodSelector from "./pages/MoodSelector";
 import RecommendedSongs from "./pages/RecommendedSongs";
 import NotFound from "./pages/NotFound";
 import GenreEraSelector from './pages/GenreEraSelector';
+import CallbackPage from "./pages/CallbackPage";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/callback" element={<CallbackPage />} />
           <Route path="/mood-selector" element={<MoodSelector />} />
           <Route path="/genre-era-selector" element={<GenreEraSelector />} />
           <Route path="/recommended-songs" element={<RecommendedSongs />} />

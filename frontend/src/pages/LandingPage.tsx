@@ -1,10 +1,25 @@
-
 import * as React from "react";
 import { Link } from 'react-router-dom';
 import Layout from "../components/Layout";
 import { Button } from '../components/ui/button';
 
 const LandingPage: React.FC = () => {
+  const handleLogin = () => {
+    const clientId = "9f6846269fd8466aa22093a8d0e0c018";
+    const redirectUri = "http://localhost:8080/callback";
+    const scope = "playlist-modify-private user-read-private";
+  
+    const authUrl = `https://accounts.spotify.com/authorize` +
+      `?client_id=${encodeURIComponent(clientId)}` +
+      `&response_type=code` +
+      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+      `&scope=${encodeURIComponent(scope)}`;
+  
+    window.location.href = authUrl;
+  };
+  
+  
+
   return (
     <Layout>
       <div className="relative w-full h-screen overflow-hidden">
@@ -30,9 +45,10 @@ const LandingPage: React.FC = () => {
         <div className="bottom-corner-right">
           <Button 
             variant="ghost"
+            onClick={handleLogin}
             className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/30 px-8 py-6 text-xl rounded-full shadow-lg transition-all hover:shadow-xl"
           >
-            Login
+            Login to Spotify
           </Button>
         </div>
       </div>

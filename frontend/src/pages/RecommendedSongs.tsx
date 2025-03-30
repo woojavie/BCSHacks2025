@@ -1,4 +1,3 @@
-
 import * as React from "react";
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
@@ -13,20 +12,16 @@ interface Song {
 
 const RecommendedSongs: React.FC = () => {
   const navigate = useNavigate();
+  const [songs, setSongs] = React.useState<Song[]>([]);
 
-  // Placeholder song data
-  const songs: Song[] = [
-    { id: '1', title: 'Dreamy Nights', artist: 'Luna Wave' },
-    { id: '2', title: 'Pastel Skies', artist: 'The Gradients' },
-    { id: '3', title: 'Emotional Motion', artist: 'Echo Chamber' },
-    { id: '4', title: 'Floating Through', artist: 'Ambient Dreams' },
-    { id: '5', title: 'Sunset Feelings', artist: 'Chill Collective' },
-    { id: '6', title: 'Soft Petals', artist: 'Flower Child' },
-    { id: '7', title: 'Gentle Rain', artist: 'Nature Sounds' },
-    { id: '8', title: 'Twilight Hour', artist: 'Midnight Band' },
-    { id: '9', title: 'Rainbow Haze', artist: 'Color Theory' },
-    { id: '10', title: 'Daydreamer', artist: 'Mind Escape' },
-  ];
+  React.useEffect(() => {
+    const stored = localStorage.getItem('recommendedSongs');
+    if (stored) {
+      setSongs(JSON.parse(stored));
+    }
+  }, []);
+
+  const playlistUrl = localStorage.getItem('playlistUrl');
 
   return (
     <Layout>
@@ -57,7 +52,7 @@ const RecommendedSongs: React.FC = () => {
                 </div>
               ))}
             </div>
-            
+
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Button
                 onClick={() => navigate('/mood-selector')}
@@ -70,7 +65,8 @@ const RecommendedSongs: React.FC = () => {
               
               <Button
                 onClick={() => {
-                  window.scrollTo(0, 0);
+                  console.log('Attempting to open:', playlistUrl);
+                  if (playlistUrl) window.open(playlistUrl, '_blank');
                 }}
                 className="bg-purple-700 hover:bg-purple-800 text-white"
               >
@@ -81,7 +77,6 @@ const RecommendedSongs: React.FC = () => {
         </div> 
       </div>   
     </Layout>
-
   );
 };
 
