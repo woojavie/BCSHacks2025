@@ -3,12 +3,14 @@ const express = require('express');
 const axios = require('axios');
 const bodyParser = require('body-parser');
 const querystring = require('querystring');
+const cors = require('cors'); // jacky added this
 require('dotenv').config();
 
 const app = express();
 const port = 3000;
 
 // Middleware
+app.use(cors()); // jacky added this
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
@@ -79,16 +81,29 @@ app.get('/api/mood-playlist/:mood', async (req, res) => {
       const seedGenres = moodToGenres[mood].slice(0, 5);
       
       // Get recommendations based on genres and audio features for the mood
-      const recommendations = await axios.get('https://api.spotify.com/v1/recommendations', {
+      // const recommendations = await axios.get('https://api.spotify.com/v1/recommendations', { // original
+      //   headers: {
+      //     'Authorization': `Bearer ${accessToken}`
+      //   },
+      //   params: {
+      //     seed_genres: seedGenres.join(','),
+      //     limit: limit,
+      //     ...getMoodAudioFeatures(mood)
+      //   }
+      // });
+      const recommendations = await axios.get('https://api.spotify.com/v1/recommendations', { // jacky addeed this
         headers: {
-          'Authorization': `Bearer ${accessToken}`
+          Authorization: `Bearer ${accessToken}`,
         },
         params: {
           seed_genres: seedGenres.join(','),
-          limit: limit,
-          ...getMoodAudioFeatures(mood)
-        }
+          limit: 20,
+        },
       });
+      
+      // Log the response from Spotify
+      console.log('Spotify recommendations response:', recommendations.data);
+      
       
       // Extract track information for the response
       const tracks = recommendations.data.tracks.map(track => ({
@@ -226,6 +241,23 @@ function getMoodAudioFeatures(mood) {
         return {};
     }
   }
+
+  app.post('/api/save-moods', (req, res) => { // jacky added this 
+    const { moods } = req.body;
+  
+    if (!Array.isArray(moods) || moods.length === 0) {
+      return res.status(400).json({ error: 'No moods provided' });
+    }
+  
+    console.log('Received moods from frontend:', moods);
+  
+    res.status(200).json({ message: 'Moods received successfully' });
+  });
+
+
+
+
+  
 
 // Start server
 app.listen(port, () => {

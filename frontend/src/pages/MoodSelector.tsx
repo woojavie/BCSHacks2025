@@ -56,9 +56,26 @@ const MoodSelector: React.FC = () => {
     }
   };
 
-  const handleNext = () => {
-    navigate('/genre-era-selector');
+  const handleNext = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/save-moods', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ moods: selectedMoods }),
+      });
+  
+      if (!response.ok) throw new Error('Failed to save moods');
+  
+      // Optionally store in localStorage too
+      localStorage.setItem('selectedMoods', JSON.stringify(selectedMoods));
+  
+      navigate('/genre-era-selector');
+    } catch (error) {
+      console.error('Error saving moods:', error);
+      alert('Failed to save mood data.');
+    }
   };
+  
 
   return (
     <Layout>

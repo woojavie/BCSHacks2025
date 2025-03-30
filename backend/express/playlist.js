@@ -1,8 +1,9 @@
-import express from "express";
-import dotenv from "dotenv";
-import cors from "cors";
-import axios from "axios";
-import querystring from "querystring";
+
+const express = require("express");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const axios = require("axios");
+const querystring = require("querystring");
 
 dotenv.config();
 const app = express();
@@ -13,7 +14,7 @@ const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI;
 
-// OAuth - Get Spotify Access Token
+
 app.post("/auth/spotify", async (req, res) => {
   const { code } = req.body;
 
@@ -27,84 +28,141 @@ app.post("/auth/spotify", async (req, res) => {
 
   try {
     const response = await axios.post("https://accounts.spotify.com/api/token", tokenData, {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
     });
     res.json(response.data);
   } catch (error) {
-    res.status(400).json({ error: error.response.data });
+    res.status(400).json({ error: error.response?.data || error.message });
   }
 });
 
-// Generate Playlist using OpenAI and Spotify API
+
 app.post("/generate-playlist", async (req, res) => {
-  const { mood, genre, era, accessToken } = req.body;
+  const { moods = [], genres = [], eras = [], accessToken } = req.body;
 
-  // OpenAI prompt
-  const openaiResponse = await axios.post(
-    "https://api.openai.com/v1/chat/completions",
-    {
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: "You are a music expert. Recommend 10 songs based on user preferences.",
-        },
-        {
-          role: "user",
-          content: `Recommend 10 songs that match the mood "${mood}", genre "${genre}", and era "${era}". Return only a period-separated list of song titles and artists.`,
-        },
-      ],
-      temperature: 0.7,
-    },
-    {
-      headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
-    }
-  );
-  const songs = openaiResponse.data.choices[0].message.content.split(".");
+  // Build strings from arrays
+  const mood = moods.join(", ") || "any";
+  const genre = genres.join(", ") || "any";
+  const era = eras.join(", ") || "any";
 
-  // Search for songs on Spotify and get track IDs
-  const trackURIs = [];
-  for (const song of songs) {
-    try {
-      const searchRes = await axios.get(`https://api.spotify.com/v1/search`, {
+  console.log("Received access token:", accessToken);
+
+  try {
+
+    const openaiResponse = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: "You are a music expert. Recommend 10 songs based on user preferences.",
+          },
+          {
+            role: "user",
+            content: `
+Recommend 10 songs that match the mood "${mood}", genre "${genre}", and era "${era}".
+Return ONLY one song per line, in the exact format: "Song Title" by Artist
+(no numbers, no extra punctuation).
+            `
+          },
+        ],
+        temperature: 0.7,
+      },
+      {
+        headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+      }
+    );
+
+    const rawGPT = openaiResponse.data.choices[0].message.content;
+    console.log("Raw GPT output:\n", rawGPT);
+
+    const songs = rawGPT
+      .split("\n")
+      .map(line => line.trim())
+      .filter(Boolean);
+
+    const removeQuotes = (str) => str.replace(/"/g, "").trim();
+
+
+    const trackURIs = [];
+    for (const line of songs) {
+
+      let [rawTitle, rawArtist] = line.split(" by ");
+      if (!rawTitle || !rawArtist) {
+        console.log("Skipping invalid line:", line);
+        continue;
+      }
+
+      let title = removeQuotes(rawTitle);
+      let artist = removeQuotes(rawArtist);
+
+
+      artist = artist.replace(/\(?(ft\.|feat\.|featuring)\)?\.?\s.*$/i, "").trim();
+
+      artist = artist.replace(/[.,!?]+$/, "").trim();
+
+      const searchQuery = `track:"${title}" artist:"${artist}"`;
+      console.log("searchQuery:", searchQuery);
+
+      const searchRes = await axios.get("https://api.spotify.com/v1/search", {
         headers: { Authorization: `Bearer ${accessToken}` },
-        params: { q: song.trim(), type: "track", limit: 1 },
+        params: {
+          q: searchQuery,
+          type: "track",
+          limit: 1,
+        },
       });
 
       if (searchRes.data.tracks.items.length > 0) {
         trackURIs.push(searchRes.data.tracks.items[0].uri);
       }
-    } catch (error) {
-      console.error(`Error searching for song: ${song}`, error.response.data);
     }
+
+
+    const userRes = await axios.get("https://api.spotify.com/v1/me", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const userId = userRes.data.id;
+
+    const playlistRes = await axios.post(
+      `https://api.spotify.com/v1/users/${userId}/playlists`,
+      { name: `Mood: ${mood} - ${genre} (${era})`, public: false },
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+
+
+    if (trackURIs.length > 0) {
+      await axios.post(
+        `https://api.spotify.com/v1/playlists/${playlistRes.data.id}/tracks`,
+        { uris: trackURIs },
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+    }
+
+
+    const finalSongs = songs.map((line, index) => {
+      const [rawTitle, rawArtist] = line.split(" by ");
+      return {
+        id: index + 1,
+        title: removeQuotes(rawTitle || `Track ${index + 1}`),
+        artist: removeQuotes(rawArtist || "Unknown Artist"),
+      };
+    });
+
+    res.json({
+      message: "Playlist created!",
+      playlistUrl: playlistRes.data.external_urls.spotify,
+      songs: finalSongs,
+    });
+
+  } catch (error) {
+    console.error("🎯 Full Error:", error);
+    console.error("🛑 Axios Error Response:", error.response?.data);
+    res.status(500).json({ error: error.response?.data || "Something went wrong generating the playlist" });
   }
-
-  // Create a new Spotify playlist
-  const userRes = await axios.get("https://api.spotify.com/v1/me", {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-
-  const userId = userRes.data.id;
-  const playlistRes = await axios.post(
-    `https://api.spotify.com/v1/users/${userId}/playlists`,
-    { name: `Mood: ${mood} - ${genre} (${era})`, public: false },
-    { headers: { Authorization: `Bearer ${accessToken}` } }
-  );
-
-  const playlistId = playlistRes.data.id;
-
-  // Add tracks to playlist
-  await axios.post(
-    `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
-    { uris: trackURIs },
-    { headers: { Authorization: `Bearer ${accessToken}` } }
-  );
-
-  res.json({ message: "Playlist created!", playlistUrl: playlistRes.data.external_urls.spotify });
 });
 
-// Start server
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
