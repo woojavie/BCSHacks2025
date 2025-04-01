@@ -11,8 +11,8 @@ Requirements:
 
 - Ensure that your Spotify Development Page has the required ports:
             http://localhost:8080/callback
-            http://127.0.0.1:5000/api/spotify/callback
-            http://localhost:5000/callback
+            <!-- http://127.0.0.1:5000/api/spotify/callback
+            http://localhost:5000/callback --> < - you may not need this 
 
 - Currently, you need to be whitelisted by Jacky's Spotify Development to get past the login page
 
