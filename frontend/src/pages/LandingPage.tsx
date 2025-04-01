@@ -13,12 +13,11 @@ const LandingPage: React.FC = () => {
       `?client_id=${encodeURIComponent(clientId)}` +
       `&response_type=code` +
       `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-      `&scope=${encodeURIComponent(scope)}`;
+      `&scope=${encodeURIComponent(scope)}` +
+      `&show_dialog=true`;
   
     window.location.href = authUrl;
   };
-  
-  
 
   return (
     <Layout>
