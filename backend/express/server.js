@@ -15,14 +15,8 @@ app.use(cors());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-
-// previously index.js
-// basic-spotify-test.js
-
 // Middleware
 app.use(express.static('public'));
-
-// Your Spotify API credentials
 
 // Mood to genre mapping
 const moodToGenres = { 
@@ -84,7 +78,7 @@ app.get('/api/mood-playlist/:mood', async (req, res) => {
       // Use seed genres from the mood
       const seedGenres = moodToGenres[mood].slice(0, 5);
       
-      const recommendations = await axios.get('https://api.spotify.com/v1/recommendations', { // jacky addeed this
+      const recommendations = await axios.get('https://api.spotify.com/v1/recommendations', {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -399,7 +393,6 @@ app.post("/generate-playlist", async (req, res) => {
     });
 
   } catch (error) {
-    // res.status(500).json({ error: error.response?.data || "Something went wrong generating the playlist" });
     console.error("Error in /generate-playlist:", error);
 
   // If Spotify sent a detailed error:
