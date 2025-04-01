@@ -58,7 +58,7 @@ const MoodSelector: React.FC = () => {
 
   const handleNext = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/save-moods', {
+      const response = await fetch('http://localhost:5000/api/save-moods', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ moods: selectedMoods }),
