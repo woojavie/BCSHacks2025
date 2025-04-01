@@ -104,7 +104,7 @@ const toggleEra = (eraId: string) => {
     };
   
     try {
-      const response = await fetch('http://localhost:5000/generate-playlist', {
+      const response = await fetch('http://localhost:5001/generate-playlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

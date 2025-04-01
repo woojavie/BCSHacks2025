@@ -24,7 +24,7 @@ const CallbackPage = () => {
     const minLoadingTime = 1500;
     const startTime = Date.now();
 
-    fetch("http://localhost:5000/auth/spotify", {
+    fetch("http://localhost:5001/auth/spotify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code }),
