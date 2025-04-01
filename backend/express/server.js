@@ -1,6 +1,6 @@
-const express = require("express");
 const dotenv = require("dotenv");
 dotenv.config()
+const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
 const querystring = require("querystring");
@@ -399,6 +399,7 @@ app.post("/generate-playlist", async (req, res) => {
     });
 
   } catch (error) {
+    // res.status(500).json({ error: error.response?.data || "Something went wrong generating the playlist" });
     console.error("Error in /generate-playlist:", error);
 
   // If Spotify sent a detailed error:
