@@ -66,42 +66,44 @@ const CallbackPage = () => {
 
   return (
     <Layout>
-      <div className="w-full max-w-md mx-auto">
-        <div className="glass rounded-3xl p-8 flex flex-col items-center text-center">
-          <div className="mb-6">
-            <Music className="h-16 w-16 text-white/90" />
-          </div>
-          
-          <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4 text-white/90 drop-shadow-lg">
-            Vibeify
-          </h1>
-          
-          <div className="relative h-24 flex flex-col items-center justify-center mb-4">
-            {status === "loading" && (
-              <Loader className="h-10 w-10 text-white/90 animate-spin" />
-            )}
-            {status === "success" && (
-              <CheckCircle className="h-12 w-12 text-green-400 animate-pulse" />
-            )}
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="w-full max-w-md">
+          <div className="glass rounded-3xl p-8 flex flex-col items-center text-center">
+            <div className="mb-6">
+              <Music className="h-16 w-16 text-white/90" />
+            </div>
+
+            <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4 text-white/90 drop-shadow-lg">
+              Vibeify
+            </h1>
+
+            <div className="relative h-24 flex flex-col items-center justify-center mb-4">
+              {status === "loading" && (
+                <Loader className="h-10 w-10 text-white/90 animate-spin" />
+              )}
+              {status === "success" && (
+                <CheckCircle className="h-12 w-12 text-green-400 animate-pulse" />
+              )}
+              {status === "error" && (
+                <AlertCircle className="h-12 w-12 text-red-400 animate-pulse" />
+              )}
+            </div>
+
+            <p className="text-xl text-white/80 mb-4">{message}</p>
+
             {status === "error" && (
-              <AlertCircle className="h-12 w-12 text-red-400 animate-pulse" />
+              <button
+                onClick={() => navigate("/")}
+                className="mt-4 px-6 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
+              >
+                Return Home
+              </button>
             )}
           </div>
-          
-          <p className="text-xl text-white/80 mb-4">{message}</p>
-          
-          {status === "error" && (
-            <button
-              onClick={() => navigate("/")}
-              className="mt-4 px-6 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
-            >
-              Return Home
-            </button>
-          )}
         </div>
       </div>
     </Layout>
   );
-};
+}
 
 export default CallbackPage;

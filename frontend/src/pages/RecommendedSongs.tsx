@@ -57,21 +57,22 @@ const RecommendedSongs: React.FC = () => {
               <Button
                 onClick={() => navigate('/mood-selector')}
                 variant="outline"
-                className="flex items-center gap-2 bg-white/50 border-purple-300"
+                className="flex items-center gap-2 bg-white/50 border-purple-300 text-white"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Mood Selection
               </Button>
               
               <Button
-                onClick={() => {
-                  console.log('Attempting to open:', playlistUrl);
-                  if (playlistUrl) window.open(playlistUrl, '_blank');
-                }}
-                className="bg-purple-700 hover:bg-purple-800 text-white"
-              >
-                Open Spotify
-              </Button>
+  onClick={() => {
+    console.log('Attempting to open:', playlistUrl);
+    if (playlistUrl) window.open(playlistUrl, '_blank');
+  }}
+  variant="outline"
+  className="flex items-center gap-2 bg-white/50 border-purple-300 text-white"
+>
+  Open Spotify
+</Button>
             </div>
           </div>
         </div> 

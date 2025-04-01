@@ -1,23 +1,28 @@
-// basic-spotify-test.js
-const express = require('express');
-const axios = require('axios');
-const bodyParser = require('body-parser');
-const querystring = require('querystring');
-const cors = require('cors'); // jacky added this
-require('dotenv').config();
-
+const express = require("express");
+const dotenv = require("dotenv");
+dotenv.config()
+const cors = require("cors");
+const axios = require("axios");
+const querystring = require("querystring");
+const bodyParser = require("body-parser");
 const app = express();
-const port = 3000;
+
+const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
+const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
+const REDIRECT_URI = process.env.REDIRECT_URI;
+
+app.use(cors());
+app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+
+// previously index.js
+// basic-spotify-test.js
 
 // Middleware
-app.use(cors()); // jacky added this
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 // Your Spotify API credentials
-const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID; // Replace with your client ID
-const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET; // Replace with your client secret
 
 // Mood to genre mapping
 const moodToGenres = { 
@@ -52,7 +57,7 @@ async function getClientCredentialsToken() {
           grant_type: 'client_credentials'
         },
         headers: {
-          'Authorization': 'Basic ' + Buffer.from(CLIENT_ID + ':' + CLIENT_SECRET).toString('base64'),
+          'Authorization': 'Basic ' + Buffer.from(SPOTIFY_CLIENT_ID + ':' + SPOTIFY_CLIENT_SECRET).toString('base64'),
           'Content-Type': 'application/x-www-form-urlencoded'
         }
       });
@@ -67,7 +72,6 @@ async function getClientCredentialsToken() {
 // API endpoint to get recommendations based on mood only
 app.get('/api/mood-playlist/:mood', async (req, res) => {
     const { mood } = req.params;
-    const limit = req.query.limit || 20;
     
     if (!mood || !moodToGenres[mood]) {
       return res.status(400).json({ error: 'Invalid or unsupported mood' });
@@ -80,17 +84,6 @@ app.get('/api/mood-playlist/:mood', async (req, res) => {
       // Use seed genres from the mood
       const seedGenres = moodToGenres[mood].slice(0, 5);
       
-      // Get recommendations based on genres and audio features for the mood
-      // const recommendations = await axios.get('https://api.spotify.com/v1/recommendations', { // original
-      //   headers: {
-      //     'Authorization': `Bearer ${accessToken}`
-      //   },
-      //   params: {
-      //     seed_genres: seedGenres.join(','),
-      //     limit: limit,
-      //     ...getMoodAudioFeatures(mood)
-      //   }
-      // });
       const recommendations = await axios.get('https://api.spotify.com/v1/recommendations', { // jacky addeed this
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -242,7 +235,9 @@ function getMoodAudioFeatures(mood) {
     }
   }
 
-  app.post('/api/save-moods', (req, res) => { // jacky added this 
+
+// mood storage
+  app.post('/api/save-moods', (req, res) => { 
     const { moods } = req.body;
   
     if (!Array.isArray(moods) || moods.length === 0) {
@@ -260,7 +255,152 @@ function getMoodAudioFeatures(mood) {
   
 
 // Start server
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-  console.log('Try it out: http://localhost:' + port + '/api/mood-playlist/happy');
+
+// previously playlist.js
+app.post("/auth/spotify", async (req, res) => {
+  const { code } = req.body;
+
+  const tokenData = querystring.stringify({
+    grant_type: "authorization_code",
+    code,
+    redirect_uri: REDIRECT_URI,
+    client_id: SPOTIFY_CLIENT_ID,
+    client_secret: SPOTIFY_CLIENT_SECRET,
+  });
+
+  try {
+    const response = await axios.post("https://accounts.spotify.com/api/token", tokenData, {
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    });
+    res.json(response.data);
+  } catch (error) {
+    res.status(400).json({ error: error.response?.data || error.message });
+  }
 });
+
+
+    app.post("/generate-playlist", async (req, res) => {
+    const { moods = [], genres = [], eras = [], accessToken } = req.body;
+
+    // Build strings from arrays
+    const mood = moods.join(", ") || "any";
+    const genre = genres.join(", ") || "any";
+    const era = eras.join(", ") || "any";
+
+    console.log("Received access token:", accessToken);
+
+  try {
+
+    const openaiResponse = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are a music expert. Recommend 10 songs based on user preferences.",
+          },
+          {
+            role: "user",
+            content: `
+                Recommend 10 songs on Spotify that match the mood "${mood}", genre "${genre}", and era "${era}".
+                Return ONLY one song per line, in the exact format: "Song Title" by Artist
+                (no numbers, no extra punctuation). Additionally, if there are multiple artists, use "&" instead of "and".
+            `
+          },
+        ],
+        temperature: 0.7,
+      },
+      {
+        headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+      }
+    );
+
+    const rawGPT = openaiResponse.data.choices[0].message.content;
+    console.log("Raw GPT output:\n", rawGPT);
+
+    const songs = rawGPT
+      .split("\n")
+      .map(line => line.trim())
+      .filter(Boolean);
+
+    const removeQuotes = (str) => str.replace(/"/g, "").trim();
+
+    const trackURIs = [];
+    for (const line of songs) {
+
+      let [rawTitle, rawArtist] = line.split(" by ");
+      if (!rawTitle || !rawArtist) {
+        console.log("Skipping invalid line:", line);
+        continue;
+      }
+
+      let title = removeQuotes(rawTitle);
+      let artist = removeQuotes(rawArtist);
+
+
+      artist = artist.replace(/\(?(ft\.|feat\.|featuring)\)?\.?\s.*$/i, "").trim();
+
+      artist = artist.replace(/[.,!?]+$/, "").trim();
+
+      const searchQuery = `track:"${title}" artist:"${artist}"`;
+      console.log("searchQuery:", searchQuery);
+
+      const searchRes = await axios.get("https://api.spotify.com/v1/search", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        params: {
+          q: searchQuery,
+          type: "track",
+          limit: 1,
+        },
+      });
+
+      if (searchRes.data.tracks.items.length > 0) {
+        trackURIs.push(searchRes.data.tracks.items[0].uri);
+      }
+    }
+
+
+    const userRes = await axios.get("https://api.spotify.com/v1/me", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const userId = userRes.data.id;
+
+    const playlistRes = await axios.post(
+      `https://api.spotify.com/v1/users/${userId}/playlists`,
+      { name: `Mood: ${mood} - ${genre} (${era})`, public: false },
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+
+
+    if (trackURIs.length > 0) {
+      await axios.post(
+        `https://api.spotify.com/v1/playlists/${playlistRes.data.id}/tracks`,
+        { uris: trackURIs },
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+    }
+
+
+    const finalSongs = songs.map((line, index) => {
+      const [rawTitle, rawArtist] = line.split(" by ");
+      return {
+        id: index + 1,
+        title: removeQuotes(rawTitle || `Track ${index + 1}`),
+        artist: removeQuotes(rawArtist || "Unknown Artist"),
+      };
+    });
+
+    res.json({
+      message: "Playlist created!",
+      playlistUrl: playlistRes.data.external_urls.spotify,
+      songs: finalSongs,
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.response?.data || "Something went wrong generating the playlist" });
+  }
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
