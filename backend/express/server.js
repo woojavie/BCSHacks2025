@@ -116,6 +116,7 @@ app.get('/api/mood-playlist/:mood', async (req, res) => {
       });
     } catch (error) {
       console.error('Error getting recommendations:', error.response ? error.response.data : error.message);
+      console.error("Error in /generate-playlist:", error);
       res.status(error.response?.status || 500).json(error.response?.data || { error: 'Failed to get recommendations' });
     }
   });
@@ -254,9 +255,7 @@ function getMoodAudioFeatures(mood) {
 
   
 
-// Start server
 
-// previously playlist.js
 app.post("/auth/spotify", async (req, res) => {
   const { code } = req.body;
 
@@ -279,7 +278,7 @@ app.post("/auth/spotify", async (req, res) => {
 });
 
 
-    app.post("/generate-playlist", async (req, res) => {
+app.post("/generate-playlist", async (req, res) => {
     const { moods = [], genres = [], eras = [], accessToken } = req.body;
 
     // Build strings from arrays
@@ -371,6 +370,8 @@ app.post("/auth/spotify", async (req, res) => {
       { name: `Mood: ${mood} - ${genre} (${era})`, public: false },
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
+    console.log("Playlist creation response:", playlistRes.data);
+
 
 
     if (trackURIs.length > 0) {
@@ -398,9 +399,22 @@ app.post("/auth/spotify", async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ error: error.response?.data || "Something went wrong generating the playlist" });
+    // res.status(500).json({ error: error.response?.data || "Something went wrong generating the playlist" });
+    console.error("Error in /generate-playlist:", error);
+
+  // If Spotify sent a detailed error:
+  if (error.response) {
+    console.error("Error data:", error.response.data);
+    console.error("Status code:", error.response.status);
+    return res.status(error.response.status).json(error.response.data);
+  } else {
+    // If it's a lower-level error (no response from Spotify):
+    console.error("Error message:", error.message);
+    return res.status(500).json({ error: error.message });
   }
+}
 });
+  
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

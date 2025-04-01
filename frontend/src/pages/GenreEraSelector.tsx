@@ -111,6 +111,8 @@ const toggleEra = (eraId: string) => {
       });
   
       const data = await response.json();
+      console.log("Backend response:", data);
+
   
       if (data.playlistUrl && data.songs) {
         // Store playlist URL and generated songs in localStorage
