@@ -21,3 +21,10 @@ How to Run:
    Run: npm start in frontend/
 3. Open http://localhost:8080/
 
+Things to do (in no order):
+1. Set up a history feature so users can access previously generated playlists.
+2. Expand to different audio streaming services (i.e., YouTube)
+3. Improve accuracy of OpenAI -> Spotify songs (i.e., mitigate "ghost" songs)
+4. Feature for logging out?
+
+
